@@ -1,0 +1,63 @@
+{% extends "base.html" %} {% block title %}Edit Property - SmartStay{% endblock %} {% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>Edit Property</h1>
+        <p>Update your property details and upload new photos.</p>
+    </div>
+
+    <div class="page-card">
+        <form method="POST" action="{{ url_for('host.edit_property', property_id=property.id) }}" enctype="multipart/form-data">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="title">Property Title *</label>
+                    <input type="text" id="title" name="title" required value="{{ property.title }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Location *</label>
+                    <input type="text" id="location" name="location" required value="{{ property.location }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="price">Price per Night ($) *</label>
+                    <input type="number" id="price" name="price" required min="1" step="0.01" value="{{ property.price }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="max_guests">Maximum Guests *</label>
+                    <input type="number" id="max_guests" name="max_guests" required min="1" value="{{ property.max_guests }}">
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="description">Description *</label>
+                    <textarea id="description" name="description" rows="5" required>{{ property.description }}</textarea>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Existing Images</label>
+                    <div class="image-preview-grid">
+                        {% if property.image_url %} {% for image in property.image_url.split(',') %}
+                        <div class="image-preview-item">
+                            <img src="{{ image }}" alt="{{ property.title }}">
+                        </div>
+                        {% endfor %} {% else %}
+                        <p class="text-muted">No current images uploaded yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="photos">Add More Photos</label>
+                    <input type="file" id="photos" name="photos" multiple accept="image/*">
+                    <small class="form-help">Upload additional images to enhance your listing.</small>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ url_for('host.dashboard') }}" class="btn btn-outline">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

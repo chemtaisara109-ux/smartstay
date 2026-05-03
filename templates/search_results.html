@@ -1,0 +1,301 @@
+{% extends "base.html" %} {% block title %}Search Results - SmartStay{% endblock %} {% block content %}
+<!-- Search Results Header -->
+<div class="search-results-header">
+    <div class="container">
+        <div class="search-summary">
+            <h1>{{ properties|length }} stay{{ 's' if properties|length != 1 else '' }} in {{ location or 'all locations' }}</h1>
+            {% if checkin and checkout %}
+            <p>{{ checkin }} - {{ checkout }}{% if guests %}, {{ guests }} guest{{ 's' if guests != 1 else '' }}{% endif %}</p>
+            {% endif %}
+        </div>
+
+        <!-- Modify Search Button -->
+        <button class="btn btn-outline modify-search-btn" onclick="showSearchForm()">
+            <i class="fas fa-sliders-h"></i>
+            <span>Modify search</span>
+        </button>
+    </div>
+</div>
+
+<!-- Collapsible Search Form -->
+<div class="search-form-section" id="searchFormSection" style="display: none;">
+    <div class="container">
+        <div class="search-form-card">
+            <form method="GET" action="{{ url_for('guest.search') }}" class="search-form">
+                <div class="search-inputs">
+                    <div class="search-input">
+                        <label for="location">Where</label>
+                        <input type="text" id="location" name="location" placeholder="Search destinations" value="{{ location }}">
+                    </div>
+
+                    <div class="search-input">
+                        <label for="checkin">Check-in</label>
+                        <input type="date" id="checkin" name="checkin" value="{{ checkin }}">
+                    </div>
+
+                    <div class="search-input">
+                        <label for="checkout">Check-out</label>
+                        <input type="date" id="checkout" name="checkout" value="{{ checkout }}">
+                    </div>
+
+                    <div class="search-input">
+                        <label for="guests">Who</label>
+                        <select id="guests" name="guests">
+                            <option value="1" {{ 'selected' if guests == '1' else '' }}>1 guest</option>
+                            <option value="2" {{ 'selected' if guests == '2' else '' }}>2 guests</option>
+                            <option value="3" {{ 'selected' if guests == '3' else '' }}>3 guests</option>
+                            <option value="4" {{ 'selected' if guests == '4' else '' }}>4 guests</option>
+                            <option value="5" {{ 'selected' if guests == '5' else '' }}>5+ guests</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="search-actions">
+                    <button type="button" class="btn btn-outline" onclick="hideSearchForm()">Cancel</button>
+                    <button type="submit" class="search-button">
+                        <i class="fas fa-search"></i>
+                        <span>Search</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Main Results Content -->
+<div class="container">
+    <!-- Filters and Sort -->
+    <div class="browse-controls">
+        <div class="results-count">
+            <span>{{ properties|length }} results</span>
+        </div>
+
+        <div class="filters-sort">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="house">Houses</button>
+                <button class="filter-btn" data-filter="apartment">Apartments</button>
+                <button class="filter-btn" data-filter="unique">Unique stays</button>
+            </div>
+
+            <div class="sort-dropdown">
+                <select id="sortSelect">
+                    <option value="recommended">Recommended</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="rating">Highest Rated</option>
+                    <option value="newest">Newest</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map/List Toggle -->
+    <div class="view-toggle">
+        <button class="view-btn active" data-view="list">
+            <i class="fas fa-list"></i>
+            <span>List</span>
+        </button>
+        <button class="view-btn" data-view="map">
+            <i class="fas fa-map"></i>
+            <span>Map</span>
+        </button>
+    </div>
+
+    <!-- Results Container -->
+    <div class="results-container">
+        <!-- Properties Grid -->
+        <div class="properties-results">
+            {% for property in properties %}
+            <a href="{{ url_for('guest.property_detail', property_id=property.id) }}" class="property-card-link">
+                <div class="property-card" data-property-id="{{ property.id }}" data-price="{{ property.price }}" data-rating="{{ property.rating or 0 }}">
+                    <div class="property-image-container">
+                        <div class="property-images">
+                            {% set images = property.image_url.split(',') if property.image_url else [] %} {% if images %} {% for image in images[:5] %}
+                            <img src="{{ url_for('static', filename='uploads/' + image) }}" alt="{{ property.title }}" class="property-image {{ 'active' if loop.first else '' }}"> {% endfor %} {% else %}
+                            <img src="/static/images/property-placeholder.jpg" alt="{{ property.title }}" class="property-image active"> {% endif %}
+                        </div>
+
+                        {% if images|length > 1 %}
+                        <div class="image-navigation">
+                            <button class="image-nav prev" onclick="navigateImages(this, -1)">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="image-nav next" onclick="navigateImages(this, 1)">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        {% endif %}
+
+                        <button class="property-heart" onclick="toggleFavorite({{ property.id }})">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+
+                    <div class="property-content">
+                        <div class="property-header">
+                            <div class="property-location">
+                                <i class="fas fa-map-marker-alt"></i> {{ property.location }}
+                            </div>
+                            <div class="property-rating">
+                                <i class="fas fa-star"></i>
+                                <span>{{ "%.1f"|format(property.rating or 0) }}</span>
+                                <span class="rating-count">({{ property.review_count or 0 }})</span>
+                            </div>
+                        </div>
+
+                        <h3 class="property-title">{{ property.title }}</h3>
+
+                        <div class="property-details">
+                            <span>{{ property.max_guests }} guest{{ 's' if property.max_guests > 1 else '' }}</span> {% if property.bedrooms %}
+                            <span>{{ property.bedrooms }} bedroom{{ 's' if property.bedrooms > 1 else '' }}</span> {% endif %} {% if property.bathrooms %}
+                            <span>{{ property.bathrooms }} bathroom{{ 's' if property.bathrooms > 1 else '' }}</span> {% endif %}
+                        </div>
+
+                        <div class="property-description">
+                            {{ property.description[:120] }}{{ '...' if property.description|length > 120 else '' }}
+                        </div>
+
+                        <div class="property-footer">
+                            <div class="property-price">
+                                <span class="price-amount">KES {{ "%.0f"|format(property.price) }}</span>
+                                <span class="price-unit">night</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a> {% endfor %}
+        </div>
+
+        <!-- Map View (placeholder for now) -->
+        <div class="map-results" style="display: none;">
+            <div class="map-placeholder">
+                <i class="fas fa-map-marked-alt"></i>
+                <h3>Map view coming soon</h3>
+                <p>We're working on an interactive map to help you find the perfect location.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    {% if not properties %}
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-search"></i>
+        </div>
+        <h3>No results found</h3>
+        <p>Try adjusting your search criteria or browse all available properties</p>
+        <div class="empty-actions">
+            <a href="{{ url_for('guest.browse') }}" class="btn btn-primary">Browse All Properties</a>
+            <button class="btn btn-outline" onclick="clearSearch()">Clear Search</button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Toggle search form
+    function showSearchForm() {
+        document.getElementById('searchFormSection').style.display = 'block';
+        document.querySelector('.modify-search-btn').style.display = 'none';
+    }
+
+    function hideSearchForm() {
+        document.getElementById('searchFormSection').style.display = 'none';
+        document.querySelector('.modify-search-btn').style.display = 'inline-flex';
+    }
+
+    // Clear search
+    function clearSearch() {
+        window.location.href = '{{ url_for('
+        guest.browse ') }}';
+    }
+
+    // View toggle functionality
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const view = this.dataset.view;
+            const propertiesResults = document.querySelector('.properties-results');
+            const mapResults = document.querySelector('.map-results');
+
+            if (view === 'map') {
+                propertiesResults.style.display = 'none';
+                mapResults.style.display = 'block';
+            } else {
+                propertiesResults.style.display = 'block';
+                mapResults.style.display = 'none';
+            }
+        });
+    });
+
+    // Filter functionality
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const filter = this.dataset.filter;
+            // Implement filtering logic here
+            console.log('Filter:', filter);
+        });
+    });
+
+    // Sort functionality
+    document.getElementById('sortSelect').addEventListener('change', function() {
+        const sortBy = this.value;
+        // Implement sorting logic here
+        console.log('Sort by:', sortBy);
+    });
+
+    // Image navigation for property cards
+    function navigateImages(button, direction) {
+        const card = button.closest('.property-card');
+        const images = card.querySelectorAll('.property-image');
+        const activeImage = card.querySelector('.property-image.active');
+
+        let currentIndex = Array.from(images).indexOf(activeImage);
+        let newIndex = currentIndex + direction;
+
+        if (newIndex < 0) newIndex = images.length - 1;
+        if (newIndex >= images.length) newIndex = 0;
+
+        activeImage.classList.remove('active');
+        images[newIndex].classList.add('active');
+    }
+
+    // Toggle favorite
+    function toggleFavorite(propertyId) {
+        // This would make an API call to add/remove from favorites
+        const heartBtn = event.target.closest('.property-heart');
+        const icon = heartBtn.querySelector('i');
+
+        if (icon.classList.contains('far')) {
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            // Add to favorites
+        } else {
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            // Remove from favorites
+        }
+    }
+
+    // Property card click navigation
+    document.querySelectorAll('.property-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Don't navigate if clicking on heart button or image navigation
+            if (e.target.closest('.property-heart') || e.target.closest('.image-nav')) {
+                return;
+            }
+
+            const propertyId = this.dataset.propertyId;
+            if (propertyId) {
+                window.location.href = `/property/${propertyId}`;
+            }
+        });
+    });
+</script>
+{% endblock %}

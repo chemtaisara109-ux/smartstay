@@ -1,0 +1,349 @@
+{% extends "base.html" %} {% block title %}SmartStay — Laikipia County Stays{% endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}"> {% endblock %} {% block content %}
+<section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-copy container">
+        <div class="hero-top">
+            <span class="hero-pill">Find stays near Nanyuki, Rumuruti and Laikipia conservancies</span>
+            <h1>Discover unforgettable stays in Laikipia County</h1>
+            <p>Browse safari lodges, mountain cabins, farm stays and luxury villas with trusted local hosts.</p>
+        </div>
+
+        <div class="hero-search-card">
+            <form action="{{ url_for('guest.search') }}" method="GET" class="hero-search-form search-form">
+                <div class="search-group search-location">
+                    <label for="location">Where</label>
+                    <div class="location-input-inline">
+                        <input type="text" id="location" name="location" placeholder="Search Laikipia destinations" autocomplete="off">
+                        <button type="button" class="btn btn-secondary map-toggle-btn" id="openMapToggle">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Map
+                        </button>
+                    </div>
+                    <div class="search-map-panel" id="searchMapPanel">
+                        <p class="map-panel-title">Tap a destination to load it into search</p>
+                        <div class="destination-grid">
+                            <button type="button" class="destination-chip" data-location="Nanyuki">Nanyuki</button>
+                            <button type="button" class="destination-chip" data-location="Nyahururu">Nyahururu</button>
+                            <button type="button" class="destination-chip" data-location="Olekalao">Olekalao</button>
+                            <button type="button" class="destination-chip" data-location="Ewaso Nyiro River">Ewaso Nyiro River</button>
+                        </div>
+                        <div class="mini-map" id="miniMap">
+                            <div class="map-pin" data-location="Nanyuki" style="left:22%; top:38%;">Nanyuki</div>
+                            <div class="map-pin" data-location="Nyahururu" style="left:42%; top:44%;">Nyahururu</div>
+                            <div class="map-pin" data-location="Olekalao" style="left:60%; top:32%;">Olekalao</div>
+                            <div class="map-pin" data-location="Ewaso Nyiro River" style="left:72%; top:58%;">Ewaso</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="search-group search-date">
+                    <label>When</label>
+                    <div class="date-range-grid">
+                        <div class="date-field">
+                            <span>Check-in</span>
+                            <input type="date" id="checkin" name="check_in" placeholder="Check-in">
+                        </div>
+                        <div class="date-field">
+                            <span>Check-out</span>
+                            <input type="date" id="checkout" name="check_out" placeholder="Check-out">
+                        </div>
+                    </div>
+                </div>
+                <div class="search-group search-guests">
+                    <label for="guests">Who</label>
+                    <select id="guests" name="guests">
+                        <option value="1">1 guest</option>
+                        <option value="2">2 guests</option>
+                        <option value="3">3 guests</option>
+                        <option value="4">4 guests</option>
+                        <option value="5">5+ guests</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-search">
+                    <i class="fas fa-search"></i>
+                    Search
+                </button>
+            </form>
+            <p class="hero-note">One price for your trip, all fees included.</p>
+        </div>
+    </div>
+</section>
+
+<section class="section popular-stays" id="homes">
+    <div class="container">
+        <div class="section-header">
+            <div>
+                <p class="eyebrow">Popular stays in Laikipia</p>
+                <h2>Popular stays in Laikipia</h2>
+            </div>
+            <a href="{{ url_for('guest.browse') }}" class="text-link">Browse all stays</a>
+        </div>
+
+        <div class="horizontal-scroll">
+            <article class="stay-card">
+                <div class="card-badge">Guest favorite</div>
+                <img data-src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80" alt="Safari Lodge in Nanyuki" class="lazy">
+                <div class="card-body">
+                    <div>
+                        <span class="card-title">Safari Lodge in Nanyuki</span>
+                        <p class="card-location">Nanyuki</p>
+                    </div>
+                    <div class="card-meta">
+                        <span class="card-price">KES 18,500</span>
+                        <span class="card-rating"><i class="fas fa-star"></i> 4.9</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="stay-card">
+                <div class="card-badge">Guest favorite</div>
+                <img data-src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=900&q=80" alt="Mountain View Cabin" class="lazy">
+                <div class="card-body">
+                    <div>
+                        <span class="card-title">Mountain View Cabin</span>
+                        <p class="card-location">Rumuruti</p>
+                    </div>
+                    <div class="card-meta">
+                        <span class="card-price">KES 12,400</span>
+                        <span class="card-rating"><i class="fas fa-star"></i> 4.8</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="stay-card">
+                <div class="card-badge">Guest favorite</div>
+                <img data-src="https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80" alt="Luxury Villa in Laikipia" class="lazy">
+                <div class="card-body">
+                    <div>
+                        <span class="card-title">Luxury Villa Retreat</span>
+                        <p class="card-location">Laikipia Plateau</p>
+                    </div>
+                    <div class="card-meta">
+                        <span class="card-price">KES 24,900</span>
+                        <span class="card-rating"><i class="fas fa-star"></i> 5.0</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="stay-card">
+                <div class="card-badge">Guest favorite</div>
+                <img data-src="https://images.unsplash.com/photo-1542317854-6e2b2716c6c3?auto=format&fit=crop&w=900&q=80" alt="Acacia Savannah Camp" class="lazy">
+                <div class="card-body">
+                    <div>
+                        <span class="card-title">Acacia Savannah Camp</span>
+                        <p class="card-location">Ol Pejeta</p>
+                    </div>
+                    <div class="card-meta">
+                        <span class="card-price">KES 15,200</span>
+                        <span class="card-rating"><i class="fas fa-star"></i> 4.7</span>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section categories-section" id="experiences">
+    <div class="container">
+        <p class="eyebrow">Discover Laikipia</p>
+        <h2>Experiences and stays for every traveler</h2>
+        <div class="category-grid">
+            <div class="category-card">
+                <span class="category-icon">🐘</span>
+                <h3>Safari Lodges</h3>
+            </div>
+            <div class="category-card">
+                <span class="category-icon">🏔️</span>
+                <h3>Mountain View Cabins</h3>
+            </div>
+            <div class="category-card">
+                <span class="category-icon">🌾</span>
+                <h3>Farm Stays</h3>
+            </div>
+            <div class="category-card">
+                <span class="category-icon">🏡</span>
+                <h3>Luxury Villas</h3>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section weekend-section">
+    <div class="container">
+        <div class="section-header">
+            <div>
+                <p class="eyebrow">Weekend deals</p>
+                <h2>Available in Laikipia this weekend</h2>
+            </div>
+            <a href="{{ url_for('guest.browse') }}" class="text-link">See all weekend stays</a>
+        </div>
+
+        <div class="deal-grid">
+            <article class="deal-card">
+                <img data-src="https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80" alt="Discounted Safari Lodge" class="lazy">
+                <div class="deal-body">
+                    <span class="deal-tag">20% off</span>
+                    <h3>Serene Safari Lodge</h3>
+                    <p>Perfect for a weekend escape near wild conservancies.</p>
+                    <div class="deal-cta">KES 13,800 / night</div>
+                </div>
+            </article>
+            <article class="deal-card">
+                <img data-src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80" alt="Farm stay offer" class="lazy">
+                <div class="deal-body">
+                    <span class="deal-tag">Limited offer</span>
+                    <h3>Riverside Farm Stay</h3>
+                    <p>Authentic local experience with fresh meals and open skies.</p>
+                    <div class="deal-cta">KES 9,500 / night</div>
+                </div>
+            </article>
+            <article class="deal-card">
+                <img data-src="https://images.unsplash.com/photo-1542317854-6e2b2716c6c3?auto=format&fit=crop&w=900&q=80" alt="Luxury villa special" class="lazy">
+                <div class="deal-body">
+                    <span class="deal-tag">Popular choice</span>
+                    <h3>Luxury Villa Retreat</h3>
+                    <p>Outstanding views, private pool and quiet countryside.</p>
+                    <div class="deal-cta">KES 22,000 / night</div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section features-section" id="services">
+    <div class="container">
+        <p class="eyebrow">Why SmartStay</p>
+        <h2>Why travelers choose Laikipia</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>Close to wildlife conservancies</h3>
+                <p>Stay near endangered species and safari routes with easy access to world-class reserves.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Secure & verified stays</h3>
+                <p>Every host and property is verified so you can book with confidence.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Local hosts & authentic experiences</h3>
+                <p>Connect with hosts who know the best hidden gems in the region.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Affordable stays for every budget</h3>
+                <p>From rustic farmhouses to premium lodges, there is a stay for every traveler.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section map-section">
+    <div class="container map-card">
+        <div>
+            <p class="eyebrow">Explore Laikipia</p>
+            <h2>Find your next stay on the interactive destination map</h2>
+            <p>Hover over the map pins or choose a hotspot to preview our most scenic locations in Laikipia.</p>
+            <a href="{{ url_for('guest.browse') }}" class="btn btn-primary">View Map Preview</a>
+        </div>
+        <div class="map-image">
+            <img data-src="https://images.unsplash.com/photo-1516455590571-18256e1dd8d5?auto=format&fit=crop&w=900&q=80" alt="Laikipia map preview" class="lazy">
+        </div>
+    </div>
+</section>
+
+<section class="section inspiration-section">
+    <div class="container">
+        <div class="section-header">
+            <div>
+                <p class="eyebrow">Inspiration for Future Getaways</p>
+                <h2>Plan your next memorable trip with curated suggestions</h2>
+            </div>
+        </div>
+        <div class="inspiration-grid">
+            <article class="inspo-card">
+                <h3>Popular</h3>
+                <ul>
+                    <li><a href="#">Nanyuki</a></li>
+                    <li><a href="#">Nyahururu</a></li>
+                    <li><a href="#">Olekalao</a></li>
+                    <li><a href="#">Amazing Grazing</a></li>
+                </ul>
+            </article>
+            <article class="inspo-card">
+                <h3>Art and Culture</h3>
+                <ul>
+                    <li><a href="#">Ewaso Nyiro River</a></li>
+                    <li><a href="#">Kikuyu Culture</a></li>
+                    <li><a href="#">Farmers</a></li>
+                    <li><a href="#">Noted Apartments</a></li>
+                </ul>
+            </article>
+            <article class="inspo-card">
+                <h3>Things to Do</h3>
+                <ul>
+                    <li><a href="#">Sports Activities</a></li>
+                    <li><a href="#">Tourism</a></li>
+                    <li><a href="#">Education</a></li>
+                    <li><a href="#">Hotels</a></li>
+                </ul>
+            </article>
+            <article class="inspo-card">
+                <h3>Travel Trips</h3>
+                <ul>
+                    <li><a href="#">Family</a></li>
+                    <li><a href="#">Outdoor Adventures</a></li>
+                    <li><a href="#">Family Budget Trips</a></li>
+                </ul>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section support-section">
+    <div class="container support-card">
+        <div>
+            <p class="eyebrow">Support</p>
+            <h2>We’re here for every traveler and host</h2>
+            <p>Explore helpful resources for booking, hosting, accessibility, and neighborhood support.</p>
+        </div>
+        <div class="support-links-grid">
+            <a href="#" class="support-link">Help Center</a>
+            <a href="#" class="support-link">Disability Support</a>
+            <a href="#" class="support-link">Report a Neighbor Concern</a>
+            <a href="#" class="support-link">Host Service Support</a>
+        </div>
+    </div>
+</section>
+
+<section class="section host-banner">
+    <div class="container host-card">
+        <div>
+            <p class="eyebrow">Host in Laikipia</p>
+            <h2>Earn income by hosting in Laikipia</h2>
+            <p>Share your home with travelers looking for safari lodges, cabins and authentic Kenyan stays.</p>
+        </div>
+        <a href="{{ url_for('auth.host_register') }}" class="btn btn-primary">Start Hosting</a>
+    </div>
+</section>
+{% endblock %} {% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const images = document.querySelectorAll('img.lazy');
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        obs.unobserve(img);
+                    }
+                });
+            }, {
+                rootMargin: '100px'
+            });
+            images.forEach(img => observer.observe(img));
+        } else {
+            images.forEach(img => img.src = img.dataset.src);
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,252 @@
+{% extends "base.html" %} {% block title %}Browse Properties - SmartStay{% endblock %} {% block content %}
+<!-- Browse Header -->
+<div class="browse-header">
+    <div class="container">
+        <div class="browse-title">
+            <h1>Find your next stay</h1>
+            <p>Search deals on hotels, homes, and much more...</p>
+        </div>
+
+        <!-- Search Form -->
+        <div class="search-form-card">
+            <form method="GET" action="{{ url_for('guest.search') }}" class="search-form">
+                <div class="search-inputs">
+                    <div class="search-input">
+                        <label for="location">Where</label>
+                        <input type="text" id="location" name="location" placeholder="Search destinations" value="{{ request.args.get('location', '') }}">
+                    </div>
+
+                    <div class="search-input">
+                        <label for="checkin">Check-in</label>
+                        <input type="date" id="checkin" name="checkin" value="{{ request.args.get('checkin', '') }}">
+                    </div>
+
+                    <div class="search-input">
+                        <label for="checkout">Check-out</label>
+                        <input type="date" id="checkout" name="checkout" value="{{ request.args.get('checkout', '') }}">
+                    </div>
+
+                    <div class="search-input">
+                        <label for="guests">Who</label>
+                        <select id="guests" name="guests">
+                            <option value="1" {{ 'selected' if request.args.get('guests') == '1' else '' }}>1 guest</option>
+                            <option value="2" {{ 'selected' if request.args.get('guests') == '2' else '' }}>2 guests</option>
+                            <option value="3" {{ 'selected' if request.args.get('guests') == '3' else '' }}>3 guests</option>
+                            <option value="4" {{ 'selected' if request.args.get('guests') == '4' else '' }}>4 guests</option>
+                            <option value="5" {{ 'selected' if request.args.get('guests') == '5' else '' }}>5+ guests</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="search-button">
+                    <i class="fas fa-search"></i>
+                    <span>Search</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Main Browse Content -->
+<div class="container">
+    <!-- Filters and Sort -->
+    <div class="browse-controls">
+        <div class="results-count">
+            <span>{{ properties|length }} stays</span>
+        </div>
+
+        <div class="filters-sort">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="house">Houses</button>
+                <button class="filter-btn" data-filter="apartment">Apartments</button>
+                <button class="filter-btn" data-filter="unique">Unique stays</button>
+            </div>
+
+            <div class="sort-dropdown">
+                <select id="sortSelect">
+                    <option value="recommended">Recommended</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="rating">Highest Rated</option>
+                    <option value="newest">Newest</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Properties Grid -->
+    <div class="properties-grid">
+        {% for property in properties %}
+        <a href="{{ url_for('guest.property_detail', property_id=property.id) }}" class="property-card-link">
+            <div class="property-card" data-property-id="{{ property.id }}" data-price="{{ property.price }}" data-rating="{{ property.rating or 0 }}">
+                <div class="property-image-container">
+                    <div class="property-images">
+                        {% set images = property.image_url.split(',') if property.image_url else [] %} {% if images %} {% for image in images[:5] %}
+                        <img src="{{ url_for('static', filename='uploads/' + image) }}" alt="{{ property.title }}" class="property-image {{ 'active' if loop.first else '' }}"> {% endfor %} {% else %}
+                        <img src="/static/images/property-placeholder.jpg" alt="{{ property.title }}" class="property-image active"> {% endif %}
+                    </div>
+
+                    {% if images|length > 1 %}
+                    <div class="image-navigation">
+                        <button class="image-nav prev" onclick="navigateImages(this, -1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="image-nav next" onclick="navigateImages(this, 1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    {% endif %}
+
+                    <button class="property-heart" onclick="toggleFavorite({{ property.id }})">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+
+                <div class="property-content">
+                    <div class="property-header">
+                        <div class="property-location">
+                            <i class="fas fa-map-marker-alt"></i> {{ property.location }}
+                        </div>
+                        <div class="property-rating">
+                            <i class="fas fa-star"></i>
+                            <span>{{ "%.1f"|format(property.rating or 0) }}</span>
+                            <span class="rating-count">({{ property.review_count or 0 }})</span>
+                        </div>
+                    </div>
+
+                    <h3 class="property-title">{{ property.title }}</h3>
+
+                    <div class="property-details">
+                        <span>{{ property.max_guests }} guest{{ 's' if property.max_guests > 1 else '' }}</span> {% if property.bedrooms %}
+                        <span>{{ property.bedrooms }} bedroom{{ 's' if property.bedrooms > 1 else '' }}</span> {% endif %} {% if property.bathrooms %}
+                        <span>{{ property.bathrooms }} bath{{ 's' if property.bathrooms > 1 else '' }}</span> {% endif %}
+                    </div>
+
+                    <div class="property-description">
+                        {{ property.description[:120] }}{{ '...' if property.description|length > 120 else '' }}
+                    </div>
+
+                    <div class="property-footer">
+                        <div class="property-price">
+                            <span class="price-amount">KES {{ "%.0f"|format(property.price) }}</span>
+                            <span class="price-unit">night</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Load More Button -->
+    {% if properties|length >= 20 %}
+    <div class="load-more-container">
+        <button class="btn btn-outline load-more-btn" id="loadMoreBtn">
+            <span>Show more</span>
+            <i class="fas fa-spinner fa-spin" style="display: none;"></i>
+        </button>
+    </div>
+    {% endif %}
+
+    <!-- Empty State -->
+    {% if not properties %}
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-search"></i>
+        </div>
+        <h3>No properties found</h3>
+        <p>Try adjusting your search criteria or browse all available properties</p>
+        <a href="{{ url_for('guest.browse') }}" class="btn btn-primary">Browse All Properties</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Image navigation for property cards
+    function navigateImages(button, direction) {
+        const card = button.closest('.property-card');
+        const images = card.querySelectorAll('.property-image');
+        const activeImage = card.querySelector('.property-image.active');
+
+        let currentIndex = Array.from(images).indexOf(activeImage);
+        let newIndex = currentIndex + direction;
+
+        if (newIndex < 0) newIndex = images.length - 1;
+        if (newIndex >= images.length) newIndex = 0;
+
+        activeImage.classList.remove('active');
+        images[newIndex].classList.add('active');
+    }
+
+    // Toggle favorite
+    function toggleFavorite(propertyId) {
+        // This would make an API call to add/remove from favorites
+        const heartBtn = event.target.closest('.property-heart');
+        const icon = heartBtn.querySelector('i');
+
+        if (icon.classList.contains('far')) {
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            // Add to favorites
+        } else {
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            // Remove from favorites
+        }
+    }
+
+    // Filter functionality
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const filter = this.dataset.filter;
+            // Implement filtering logic here
+            console.log('Filter:', filter);
+        });
+    });
+
+    // Sort functionality
+    document.getElementById('sortSelect').addEventListener('change', function() {
+        const sortBy = this.value;
+        // Implement sorting logic here
+        console.log('Sort by:', sortBy);
+    });
+
+    // Load more functionality
+    document.getElementById('loadMoreBtn') ? .addEventListener('click', function() {
+        const btn = this;
+        const spinner = btn.querySelector('.fa-spinner');
+        const text = btn.querySelector('span');
+
+        btn.disabled = true;
+        spinner.style.display = 'inline-block';
+        text.textContent = 'Loading...';
+
+        // Simulate loading more properties
+        setTimeout(() => {
+            // This would make an API call to load more properties
+            btn.disabled = false;
+            spinner.style.display = 'none';
+            text.textContent = 'Show more';
+        }, 2000);
+    });
+
+    // Property card click navigation
+    document.querySelectorAll('.property-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Don't navigate if clicking on heart button or image navigation
+            if (e.target.closest('.property-heart') || e.target.closest('.image-nav')) {
+                return;
+            }
+
+            const propertyId = this.dataset.propertyId;
+            if (propertyId) {
+                window.location.href = `/property/${propertyId}`;
+            }
+        });
+    });
+</script>
+{% endblock %}

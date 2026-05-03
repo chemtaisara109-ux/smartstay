@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Laikipia SmartStay - Find Your Perfect Stay in Laikipia County{% endblock %}</title>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"> {% block extra_css %}{% endblock %}
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+
+<body>
+    <!-- Navigation Header -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="{{ url_for('landing') }}" class="brand-link">
+                    <i class="fas fa-home"></i>
+                    <span>SmartStay</span>
+                </a>
+            </div>
+
+            <nav class="nav-menu" id="navMenu">
+                <a href="{{ url_for('landing') }}" class="nav-link">Home</a>
+
+                <div class="nav-dropdown">
+                    <button class="nav-dropdown-btn" type="button">
+                        Experiences <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="#experiences" class="dropdown-link">Visit Thomson Falls</a>
+                        <a href="#experiences" class="dropdown-link">Laikipia University</a>
+                        <a href="#experiences" class="dropdown-link">Ol Pejeta / Olekalao National Reserve</a>
+                        <a href="#experiences" class="dropdown-link">Ewaso Nyiro River</a>
+                    </div>
+                </div>
+
+                <div class="nav-dropdown">
+                    <button class="nav-dropdown-btn" type="button">
+                        Services <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="#services" class="dropdown-link">Photography</a>
+                        <a href="#services" class="dropdown-link">Training</a>
+                        <a href="#services" class="dropdown-link">Chefs</a>
+                        <a href="#services" class="dropdown-link">Massage</a>
+                        <a href="#services" class="dropdown-link">Prepared Meals</a>
+                        <a href="#services" class="dropdown-link">Makeups</a>
+                        <a href="#services" class="dropdown-link">Hair</a>
+                        <a href="#services" class="dropdown-link">Catering</a>
+                    </div>
+                </div>
+
+                {% if session.get('user_id') %} {% if session.get('role') == 'guest' %}
+                <a href="{{ url_for('guest.dashboard') }}" class="nav-link">My Bookings</a>
+                <a href="{{ url_for('guest.browse') }}" class="nav-link">Browse</a> {% else %}
+                <a href="{{ url_for('host.dashboard') }}" class="nav-link">My Properties</a>
+                <a href="{{ url_for('host.dashboard') }}" class="nav-link">Add Property</a> {% endif %}
+                <button class="btn btn-secondary nav-link" onclick="window.location.href='{{ url_for('auth.host_register') }}'">
+                        <i class="fas fa-plus"></i> Become a Host
+                    </button>
+                <div class="nav-dropdown">
+                    <button class="nav-dropdown-btn" type="button">
+                            <i class="fas fa-user-circle"></i>
+                            {{ session.get('full_name', 'User') }}
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    <div class="dropdown-menu">
+                        <a href="{{ url_for('auth.logout') }}" class="dropdown-link">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <a href="{{ url_for('auth.login_page') }}" class="nav-link">Login</a>
+                <a href="{{ url_for('auth.register_page') }}" class="btn btn-primary">Sign Up</a>
+                <a href="{{ url_for('auth.host_register') }}" class="btn btn-secondary">Become a Host</a> {% endif %}
+            </nav>
+
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' if category == 'error' else 'info-circle' }}"></i> {{ message }}
+            <button class="flash-close" onclick="this.parentElement.style.display='none'">
+                            <i class="fas fa-times"></i>
+                        </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section brand-section">
+                <h3>SmartStay</h3>
+                <p>Find your perfect stay anywhere in the world.</p>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-x-twitter"></i></a>
+                </div>
+                <p class="social-handle">@SmartStay</p>
+            </div>
+
+            <div class="footer-section">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Disability Support</a></li>
+                    <li><a href="#">Report a Neighbor Concern</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Community</h4>
+                <ul>
+                    <li><a href="#">Host Resources</a></li>
+                    <li><a href="#">Guest Resources</a></li>
+                    <li><a href="#">Trust & Safety</a></li>
+                    <li><a href="#">Community Forum</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Cookie Policy</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2024 SmartStay. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

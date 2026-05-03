@@ -1,0 +1,282 @@
+{% extends "base.html" %} {% block title %}Guest Dashboard - SmartStay{% endblock %} {% block content %}
+<div class="dashboard-container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="dashboard-welcome">
+                <h1>Welcome back, {{ session.username }}!</h1>
+                <p>Manage your bookings and discover new places to stay</p>
+            </div>
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-number">{{ bookings|length }}</div>
+                    <div class="stat-label">Total Bookings</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ bookings|selectattr('status', 'equalto', 'confirmed')|list|length }}</div>
+                    <div class="stat-label">Confirmed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ bookings|selectattr('status', 'equalto', 'pending')|list|length }}</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Content -->
+    <div class="container">
+        <div class="dashboard-grid">
+            <!-- Upcoming Bookings -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2>Your Bookings</h2>
+                    <div class="section-actions">
+                        <a href="{{ url_for('guest.browse') }}" class="btn btn-outline">Browse More Properties</a>
+                        <a href="{{ url_for('guest.browse') }}" class="btn btn-primary">Book a House</a>
+                    </div>
+                </div>
+
+                {% if bookings %}
+                <div class="bookings-grid">
+                    {% for booking in bookings %}
+                    <div class="booking-card {{ 'upcoming' if booking.status == 'confirmed' else 'pending' }}">
+                        <div class="booking-image">
+                            <img src="/static/images/property-placeholder.jpg" alt="Property">
+                            <div class="booking-status status-{{ booking.status.lower() }}">{{ booking.status.title() }}</div>
+                        </div>
+                        <div class="booking-content">
+                            <h3>{{ booking.title or 'Property Booking' }}</h3>
+                            <div class="booking-details">
+                                <div class="detail-item">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>{{ booking.check_in }} - {{ booking.check_out }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-users"></i>
+                                    <span>{{ booking.guests }} guest{{ 's' if booking.guests > 1 else '' }}</span>
+                                </div>
+                            </div>
+                            <div class="booking-price">
+                                <span class="price-amount">KES {{ "%.0f"|format(booking.total_price) }}</span>
+                                <span class="price-label">total</span>
+                            </div>
+                            <div class="booking-actions">
+                                <a href="{{ url_for('guest.property_detail', property_id=booking.property_id) }}" class="btn btn-sm">View Property</a> {% if booking.status == 'pending' %}
+                                <button class="btn btn-sm btn-outline" onclick="cancelBooking({{ booking.id }})">Cancel</button> {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3>No upcoming trips</h3>
+                    <p>Time to dust off your bags and start planning your next adventure</p>
+                    <a href="{{ url_for('guest.browse') }}" class="btn btn-primary">Start Searching</a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Quick Booking Section -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2>Book Your Next Stay</h2>
+                    <a href="{{ url_for('guest.browse') }}" class="btn btn-outline">View All Properties</a>
+                </div>
+
+                <!-- Quick Search Form -->
+                <div class="quick-search-card">
+                    <form method="GET" action="{{ url_for('guest.search') }}" class="quick-search-form">
+                        <div class="search-inputs">
+                            <div class="search-input">
+                                <label for="location">Where</label>
+                                <input type="text" id="location" name="location" placeholder="Search destinations">
+                            </div>
+
+                            <div class="search-input">
+                                <label for="checkin">Check-in</label>
+                                <input type="date" id="checkin" name="checkin">
+                            </div>
+
+                            <div class="search-input">
+                                <label for="checkout">Check-out</label>
+                                <input type="date" id="checkout" name="checkout">
+                            </div>
+
+                            <div class="search-input">
+                                <label for="guests">Guests</label>
+                                <select id="guests" name="guests">
+                                    <option value="1">1 guest</option>
+                                    <option value="2">2 guests</option>
+                                    <option value="3">3 guests</option>
+                                    <option value="4">4 guests</option>
+                                    <option value="5">5+ guests</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i>
+                            <span>Search</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Featured Properties -->
+                {% if featured_properties %}
+                <div class="featured-properties">
+                    <h3>Featured Properties</h3>
+                    <div class="properties-grid">
+                        {% for property in featured_properties[:3] %}
+                        <div class="property-card" data-property-id="{{ property.id }}">
+                            <div class="property-image-container">
+                                <div class="property-images">
+                                    {% set images = property.image_url.split(',') if property.image_url else [] %} {% if images %}
+                                    <img src="{{ url_for('static', filename='uploads/' + images[0]) }}" alt="{{ property.title }}" class="property-image active"> {% else %}
+                                    <img src="/static/images/property-placeholder.jpg" alt="{{ property.title }}" class="property-image active"> {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="property-content">
+                                <div class="property-header">
+                                    <div class="property-location">
+                                        <i class="fas fa-map-marker-alt"></i> {{ property.location }}
+                                    </div>
+                                    <div class="property-rating">
+                                        <i class="fas fa-star"></i>
+                                        <span>{{ "%.1f"|format(property.rating or 0) }}</span>
+                                    </div>
+                                </div>
+
+                                <h3 class="property-title">{{ property.title }}</h3>
+
+                                <div class="property-details">
+                                    <span>{{ property.max_guests }} guest{{ 's' if property.max_guests > 1 else '' }}</span>
+                                </div>
+
+                                <div class="property-footer">
+                                    <div class="property-price">
+                                        <span class="price-amount">KES {{ "%.0f"|format(property.price) }}</span>
+                                        <span class="price-unit">night</span>
+                                    </div>
+                                    <a href="{{ url_for('guest.property_detail', property_id=property.id) }}" class="btn btn-sm btn-primary">Book Now</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Quick Actions Section -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2>Quick Actions</h2>
+                </div>
+
+                <div class="quick-actions-grid">
+                    <a href="{{ url_for('guest.browse') }}" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="action-content">
+                            <h3>Find a Place</h3>
+                            <p>Search for your next destination</p>
+                        </div>
+                    </a>
+
+                    <a href="#" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="action-content">
+                            <h3>Edit Profile</h3>
+                            <p>Update your personal information</p>
+                        </div>
+                    </a>
+
+                    <a href="#" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="action-content">
+                            <h3>Favorites</h3>
+                            <p>View your saved properties</p>
+                        </div>
+                    </a>
+
+                    <a href="#" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <div class="action-content">
+                            <h3>Get Help</h3>
+                            <p>Contact our support team</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Booking Modal -->
+<div id="cancelModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Cancel Booking</h3>
+            <button class="modal-close" onclick="hideModal('cancelModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to cancel this booking? This action cannot be undone.</p>
+            <div class="cancellation-policy">
+                <h4>Cancellation Policy</h4>
+                <p>Free cancellation until 24 hours before check-in. After that, you may be charged a cancellation fee.</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="hideModal('cancelModal')">Keep Booking</button>
+            <button class="btn btn-danger" id="confirmCancelBtn">Cancel Booking</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Cancel booking functionality
+    function cancelBooking(bookingId) {
+        document.getElementById('confirmCancelBtn').onclick = function() {
+            fetch(`/api/bookings/${bookingId}/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error canceling booking: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error canceling booking');
+                });
+        };
+
+        showModal('cancelModal');
+    }
+
+    // Leave review functionality
+    function leaveReview(propertyId) {
+        // This would open a review modal or redirect to review page
+        window.location.href = `/property/${propertyId}/review`;
+    }
+</script>
+{% endblock %}

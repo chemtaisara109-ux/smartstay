@@ -1,0 +1,384 @@
+{% extends "base.html" %} {% block title %}Host Dashboard - SmartStay{% endblock %} {% block content %}
+<div class="dashboard-container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="dashboard-welcome">
+                <h1>Welcome back, {{ session.full_name }}!</h1>
+                <p>Manage your properties and grow your hosting business</p>
+            </div>
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-number">{{ properties|length }}</div>
+                    <div class="stat-label">Properties Listed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ bookings|length }}</div>
+                    <div class="stat-label">Total Bookings</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">KES {{ "%.0f"|format(bookings|sum(attribute='total_price') or 0) }}</div>
+                    <div class="stat-label">Total Earnings</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Content -->
+    <div class="container">
+        <div class="dashboard-grid">
+            <!-- Properties Management -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2>Your Properties</h2>
+                    <button class="btn btn-primary" onclick="showModal('addPropertyModal')">Add New Property</button>
+                </div>
+
+                {% if properties %}
+                <div class="properties-grid">
+                    {% for property in properties %}
+                    <div class="property-card host-property">
+                        <div class="property-image">
+                            <img src="{{ property.image_url or '/static/images/property-placeholder.jpg' }}" alt="{{ property.title }}">
+                            <div class="property-status status-active">Active</div>
+                        </div>
+                        <div class="property-content">
+                            <h3>{{ property.title }}</h3>
+                            <div class="property-details">
+                                <div class="detail-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>{{ property.location }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-users"></i>
+                                    <span>{{ property.max_guests }} guest{{ 's' if property.max_guests > 1 else '' }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-star"></i>
+                                    <span>{{ "%.1f"|format(property.rating or 0) }} ({{ property.review_count or 0 }} reviews)</span>
+                                </div>
+                            </div>
+                            <div class="property-price">
+                                <span class="price-amount">KES {{ "%.0f"|format(property.price) }}</span>
+                                <span class="price-label">per night</span>
+                            </div>
+                            <div class="property-actions">
+                                <a href="{{ url_for('guest.property_detail', property_id=property.id) }}" class="btn btn-sm">View</a>
+                                <button class="btn btn-sm btn-outline" onclick="editProperty({{ property.id }})">Edit</button>
+                                <button class="btn btn-sm btn-outline" onclick="manageAvailability({{ property.id }})">Calendar</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <h3>No properties listed yet</h3>
+                    <p>Start your hosting journey by adding your first property</p>
+                    <button class="btn btn-primary" onclick="showModal('addPropertyModal')">Add Your First Property</button>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Bookings Management -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2>Recent Bookings</h2>
+                    <a href="{{ url_for('host.dashboard') }}" class="btn btn-outline">View All</a>
+                </div>
+
+                {% if recent_bookings %}
+                <div class="bookings-table">
+                    <div class="table-header">
+                        <div class="table-cell">Property</div>
+                        <div class="table-cell">Guest</div>
+                        <div class="table-cell">Dates</div>
+                        <div class="table-cell">Status</div>
+                        <div class="table-cell">Earnings</div>
+                        <div class="table-cell">Actions</div>
+                    </div>
+                    {% for booking in recent_bookings %}
+                    <div class="table-row">
+                        <div class="table-cell">
+                            <div class="property-info">
+                                <strong>{{ booking.property_title }}</strong>
+                                <small>{{ booking.location }}</small>
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="guest-info">
+                                <strong>{{ booking.guest_name }}</strong>
+                                <small>{{ booking.guest_email }}</small> {% if booking.guest_phone %}
+                                <small>{{ booking.guest_phone }}</small> {% endif %}
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="booking-dates">
+                                {{ booking.check_in }}<br>
+                                <small>to {{ booking.check_out }}</small>
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <span class="status-badge status-{{ booking.status.lower() }}">{{ booking.status }}</span>
+                        </div>
+                        <div class="table-cell">
+                            <strong>KES {{ "%.0f"|format(booking.total_price) }}</strong>
+                        </div>
+                        <div class="table-cell">
+                            <div class="action-buttons">
+                                {% if booking.status == 'pending' %}
+                                <button class="btn btn-sm" onclick="confirmBooking({{ booking.id }})">Confirm</button> {% endif %}
+                                <button class="btn btn-sm btn-outline" onclick="viewBookingDetails({{ booking.id }})">Details</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h3>No bookings yet</h3>
+                    <p>Your booking requests will appear here once guests start inquiring</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Earnings Overview -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2>Earnings Overview</h2>
+                    <select class="period-selector">
+                        <option value="month">This Month</option>
+                        <option value="quarter">This Quarter</option>
+                        <option value="year">This Year</option>
+                    </select>
+                </div>
+
+                <div class="earnings-grid">
+                    <div class="earnings-card">
+                        <div class="earnings-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="earnings-content">
+                            <h3>KES {{ "%.0f"|format(monthly_earnings) }}</h3>
+                            <p>This Month</p>
+                        </div>
+                    </div>
+
+                    <div class="earnings-card">
+                        <div class="earnings-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="earnings-content">
+                            <h3>{{ "%.1f"|format(occupancy_rate) }}%</h3>
+                            <p>Occupancy Rate</p>
+                        </div>
+                    </div>
+
+                    <div class="earnings-card">
+                        <div class="earnings-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="earnings-content">
+                            <h3>{{ "%.1f"|format(avg_rating) }}</h3>
+                            <p>Average Rating</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2>Quick Actions</h2>
+                </div>
+
+                <div class="quick-actions-grid">
+                    <a href="#" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="action-content">
+                            <h3>View Analytics</h3>
+                            <p>Track your performance</p>
+                        </div>
+                    </a>
+
+                    <a href="#" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="action-content">
+                            <h3>Messages</h3>
+                            <p>Communicate with guests</p>
+                        </div>
+                    </a>
+
+                    <a href="#" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-user-cog"></i>
+                        </div>
+                        <div class="action-content">
+                            <h3>Host Profile</h3>
+                            <p>Manage your host settings</p>
+                        </div>
+                    </a>
+
+                    <a href="#" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <div class="action-content">
+                            <h3>Get Help</h3>
+                            <p>Host support center</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Property Modal -->
+<div id="addPropertyModal" class="modal">
+    <div class="modal-content large">
+        <div class="modal-header">
+            <h3>Add New Property</h3>
+            <button class="modal-close" onclick="hideModal('addPropertyModal')">&times;</button>
+        </div>
+        <form method="POST" action="{{ url_for('host.add_property') }}" enctype="multipart/form-data">
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="title">Property Title *</label>
+                        <input type="text" id="title" name="title" required placeholder="Beautiful Apartment in Nairobi">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location">Location *</label>
+                        <input type="text" id="location" name="location" required placeholder="Nairobi, Kenya">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="price">Price per Night ($) *</label>
+                        <input type="number" id="price" name="price" required min="1" placeholder="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="max_guests">Maximum Guests *</label>
+                        <input type="number" id="max_guests" name="max_guests" required min="1" placeholder="4">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="description">Description *</label>
+                        <textarea id="description" name="description" rows="4" required placeholder="Describe your property, amenities, and what makes it special..."></textarea>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="photos">Property Photos *</label>
+                        <input type="file" id="photos" name="photos" multiple accept="image/*" required>
+                        <small class="form-help">Upload up to 5 high-quality photos. First photo will be the main image.</small>
+                        <div id="photoPreview" class="image-preview-grid"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="hideModal('addPropertyModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Property</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Property management functions
+    function editProperty(propertyId) {
+        window.location.href = `/property/${propertyId}/edit`;
+    }
+
+    function manageAvailability(propertyId) {
+        window.location.href = `/property/${propertyId}/calendar`;
+    }
+
+    function confirmBooking(bookingId) {
+        if (confirm('Are you sure you want to confirm this booking?')) {
+            fetch(`/api/bookings/${bookingId}/confirm`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error confirming booking: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error confirming booking');
+                });
+        }
+    }
+
+    function viewBookingDetails(bookingId) {
+        window.location.href = `/booking/${bookingId}`;
+    }
+
+    function previewPropertyImages(input) {
+        const preview = document.getElementById('photoPreview');
+        if (!preview) return;
+        preview.innerHTML = '';
+
+        const files = Array.from(input.files).slice(0, 10);
+        files.forEach((file, index) => {
+            if (!file.type.startsWith('image/')) return;
+            if (file.size > 5 * 1024 * 1024) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const item = document.createElement('div');
+                item.className = 'image-preview-item';
+
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = `Preview ${index + 1}`;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'remove-image';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.onclick = function() {
+                    item.remove();
+                };
+
+                item.appendChild(img);
+                item.appendChild(removeBtn);
+                preview.appendChild(item);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    const photosInput = document.getElementById('photos');
+    if (photosInput) {
+        photosInput.addEventListener('change', function() {
+            previewPropertyImages(this);
+        });
+    }
+
+    // Period selector for earnings
+    document.querySelector('.period-selector').addEventListener('change', function() {
+        const period = this.value;
+        // This would update the earnings data via AJAX
+        console.log('Selected period:', period);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,332 @@
+{% extends "base.html" %} {% block title %}Become a Host - SmartStay{% endblock %} {% block content %}
+
+<!-- Host Registration Header -->
+<div class="host-register-header">
+    <div class="container">
+        <h1>Become a SmartStay Host</h1>
+        <p>Join thousands of hosts earning money from their spaces</p>
+    </div>
+</div>
+
+<!-- Registration Form -->
+<div class="container">
+    <div class="registration-form-container">
+        <form method="POST" action="{{ url_for('auth.host_register') }}" enctype="multipart/form-data" class="host-register-form">
+            <input type="hidden" name="role" value="host">
+
+            <!-- Error/Success Messages -->
+            {% if error %}
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i> {{ error }}
+            </div>
+            {% endif %} {% if success %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> {{ success }}
+            </div>
+            {% endif %}
+
+            <!-- Section 1: Personal Information -->
+            <div class="form-section">
+                <h2><i class="fas fa-user"></i> Personal Information</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="full_name">Full Name *</label>
+                        <input type="text" id="full_name" name="full_name" required placeholder="John Doe" value="{{ request.form.get('full_name', '') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" name="email" required placeholder="your@email.com" value="{{ request.form.get('email', '') }}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phone">Phone Number *</label>
+                        <input type="tel" id="phone" name="phone" required placeholder="+254 XXX XXX XXX" value="{{ request.form.get('phone', '') }}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password">Password *</label>
+                        <input type="password" id="password" name="password" required placeholder="Create a strong password">
+                        <small class="form-help">At least 8 characters with uppercase, lowercase, and numbers</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm_password">Confirm Password *</label>
+                        <input type="password" id="confirm_password" name="confirm_password" required placeholder="Confirm your password">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Property Details -->
+            <div class="form-section">
+                <h2><i class="fas fa-home"></i> Property Details</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="property_name">Property Name *</label>
+                        <input type="text" id="property_name" name="property_name" required placeholder="e.g., Cozy Beach Villa" value="{{ request.form.get('property_name', '') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Location *</label>
+                        <input type="text" id="location" name="location" required placeholder="City, Country" value="{{ request.form.get('location', '') }}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="property_type">Property Type *</label>
+                        <select id="property_type" name="property_type" required>
+                            <option value="">-- Select type --</option>
+                            <option value="room" {% if request.form.get('property_type') == 'room' %}selected{% endif %}>Room</option>
+                            <option value="bedsitter" {% if request.form.get('property_type') == 'bedsitter' %}selected{% endif %}>Bedsitter</option>
+                            <option value="apartment" {% if request.form.get('property_type') == 'apartment' %}selected{% endif %}>Apartment</option>
+                            <option value="house" {% if request.form.get('property_type') == 'house' %}selected{% endif %}>House</option>
+                            <option value="villa" {% if request.form.get('property_type') == 'villa' %}selected{% endif %}>Villa</option>
+                            <option value="cottage" {% if request.form.get('property_type') == 'cottage' %}selected{% endif %}>Cottage</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Property Features -->
+            <div class="form-section">
+                <h2><i class="fas fa-edit"></i> Property Features</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="max_guests">Maximum Guests *</label>
+                        <input type="number" id="max_guests" name="max_guests" required min="1" placeholder="2" value="{{ request.form.get('max_guests', '') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="bedrooms">Number of Bedrooms *</label>
+                        <input type="number" id="bedrooms" name="bedrooms" required min="0" placeholder="1" value="{{ request.form.get('bedrooms', '') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="bathrooms">Number of Bathrooms *</label>
+                        <input type="number" id="bathrooms" name="bathrooms" required min="1" placeholder="1" value="{{ request.form.get('bathrooms', '') }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Property Description *</label>
+                    <textarea id="description" name="description" required rows="4" placeholder="Describe your property, its unique features, nearby attractions...">{{ request.form.get('description', '') }}</textarea>
+                    <small class="form-help">Be detailed and honest to attract quality guests</small>
+                </div>
+            </div>
+
+            <!-- Section 4: Amenities -->
+            <div class="form-section">
+                <h2><i class="fas fa-concierge-bell"></i> Amenities</h2>
+                <div class="amenities-grid">
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenities" value="wifi" 
+                               {% if 'wifi' in request.form.getlist('amenities') %}checked{% endif %}>
+                        <span class="checkmark"></span>
+                        <i class="fas fa-wifi"></i> WiFi
+                    </label>
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenities" value="water"
+                               {% if 'water' in request.form.getlist('amenities') %}checked{% endif %}>
+                        <span class="checkmark"></span>
+                        <i class="fas fa-tint"></i> 24/7 Water
+                    </label>
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenities" value="electricity"
+                               {% if 'electricity' in request.form.getlist('amenities') %}checked{% endif %}>
+                        <span class="checkmark"></span>
+                        <i class="fas fa-plug"></i> Electricity
+                    </label>
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenities" value="parking"
+                               {% if 'parking' in request.form.getlist('amenities') %}checked{% endif %}>
+                        <span class="checkmark"></span>
+                        <i class="fas fa-car"></i> Parking
+                    </label>
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenities" value="security"
+                               {% if 'security' in request.form.getlist('amenities') %}checked{% endif %}>
+                        <span class="checkmark"></span>
+                        <i class="fas fa-shield-alt"></i> Security
+                    </label>
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenities" value="kitchen"
+                               {% if 'kitchen' in request.form.getlist('amenities') %}checked{% endif %}>
+                        <span class="checkmark"></span>
+                        <i class="fas fa-utensils"></i> Kitchen
+                    </label>
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenities" value="tv"
+                               {% if 'tv' in request.form.getlist('amenities') %}checked{% endif %}>
+                        <span class="checkmark"></span>
+                        <i class="fas fa-tv"></i> TV
+                    </label>
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenities" value="aircon"
+                               {% if 'aircon' in request.form.getlist('amenities') %}checked{% endif %}>
+                        <span class="checkmark"></span>
+                        <i class="fas fa-snowflake"></i> Air Conditioning
+                    </label>
+                </div>
+            </div>
+
+            <!-- Section 5: Pricing -->
+            <div class="form-section">
+                <h2><i class="fas fa-dollar-sign"></i> Pricing</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="price_per_night">Price per Night (KES) *</label>
+                        <input type="number" id="price_per_night" name="price_per_night" required min="1" placeholder="18500" step="0.01" value="{{ request.form.get('price_per_night', '') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="price_per_month">Price per Month (KES) - Optional</label>
+                        <input type="number" id="price_per_month" name="price_per_month" min="1" placeholder="500000" step="0.01" value="{{ request.form.get('price_per_month', '') }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 6: Images -->
+            <div class="form-section">
+                <h2><i class="fas fa-images"></i> Property Images</h2>
+
+                <div class="form-group">
+                    <label for="images">Upload Images *</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="images" name="images" multiple accept="image/*" required>
+                        <span class="file-input-label">Choose images...</span>
+                    </div>
+                    <small>Upload at least 3 high-quality images of your property. Maximum 10 images, 5MB each.</small>
+                </div>
+                <div id="image-preview" class="image-preview-grid"></div>
+            </div>
+
+            <!-- Section 7: Terms & Conditions -->
+            <div class="form-section">
+                <div class="terms-group">
+                    <label class="terms-item">
+                        <input type="checkbox" id="terms" name="terms" required>
+                        <span class="checkmark"></span>
+                        I agree to SmartStay's <a href="#" target="_blank">Terms of Service</a> and <a href="#" target="_blank">Privacy Policy</a>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="form-actions">
+                <button type="submit" class="btn-primary-large">Create Host Account</button>
+                <p class="form-note">By creating an account, you'll be able to list your property and start hosting guests.</p>
+            </div>
+        </form>
+
+        <div class="form-hint">
+            <p>Already have an account? <a href="{{ url_for('auth.login_page') }}">Login here</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- Trust Section -->
+<section class="trust-section">
+    <div class="container">
+        <h2>Why Choose SmartStay?</h2>
+        <div class="trust-grid">
+            <div class="trust-item">
+                <i class="fas fa-user-check"></i>
+                <h3>Verified Hosts</h3>
+                <p>All hosts undergo identity verification for your peace of mind.</p>
+            </div>
+            <div class="trust-item">
+                <i class="fas fa-credit-card"></i>
+                <h3>Secure Payments</h3>
+                <p>Payments are processed securely with bank-level encryption.</p>
+            </div>
+            <div class="trust-item">
+                <i class="fas fa-headset"></i>
+                <h3>24/7 Support</h3>
+                <p>Our customer support team is always here to help you succeed.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Image preview functionality
+    document.getElementById('images').addEventListener('change', function(e) {
+        const preview = document.getElementById('image-preview');
+        preview.innerHTML = '';
+
+        const files = Array.from(this.files);
+
+        if (files.length > 10) {
+            alert('Maximum 10 images allowed');
+            this.value = '';
+            return;
+        }
+
+        files.forEach((file, index) => {
+            if (!file.type.startsWith('image/')) {
+                alert('Please select only image files');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert(`File ${file.name} is too large (max 5MB)`);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const container = document.createElement('div');
+                container.className = 'image-preview-item';
+
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = `Preview ${index + 1}`;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'remove-image-btn';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.onclick = function(e) {
+                    e.preventDefault();
+                    container.remove();
+                };
+
+                container.appendChild(img);
+                container.appendChild(removeBtn);
+                preview.appendChild(container);
+            };
+
+            reader.readAsDataURL(file);
+        });
+    });
+
+    // Form validation
+    document.querySelector('.host-register-form').addEventListener('submit', function(e) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+
+        if (password !== confirmPassword) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+            return false;
+        }
+
+        // Basic password validation
+        if (password.length < 8) {
+            e.preventDefault();
+            alert('Password must be at least 8 characters');
+            return false;
+        }
+
+        if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+            e.preventDefault();
+            alert('Password must contain uppercase, lowercase, and numbers');
+            return false;
+        }
+    });
+</script>
+
+{% endblock %}

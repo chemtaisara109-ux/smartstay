@@ -1,0 +1,269 @@
+{% extends "base.html" %} {% block title %}Register - SmartStay{% endblock %} {% block content %}
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Join SmartStay</h1>
+                <p>Sign up as a Guest or Host</p>
+            </div>
+
+            <form method="POST" class="auth-form" id="registerForm">
+                <!-- Role Selection -->
+                <div class="role-selector">
+                    <label class="role-option">
+                        <input type="radio" name="role" value="guest" {% if selected_role != 'host' %}checked{% endif %} onchange="updateFormFields()">
+                        <span class="role-label">
+                            <i class="fas fa-user"></i>
+                            <div>
+                                <strong>Guest</strong>
+                                <p>Book amazing homes</p>
+                            </div>
+                        </span>
+                    </label>
+
+                    <label class="role-option">
+                        <input type="radio" name="role" value="host" {% if selected_role == 'host' %}checked{% endif %} onchange="updateFormFields()">
+                        <span class="role-label">
+                            <i class="fas fa-home"></i>
+                            <div>
+                                <strong>Host</strong>
+                                <p>Rent your property</p>
+                            </div>
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Common Fields -->
+                <div class="form-group">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" required placeholder="Enter your full name" value="{{ request.form.get('full_name', '') }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="Enter your email" value="{{ request.form.get('email', '') }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="password-input">
+                        <input type="password" id="password" name="password" required placeholder="Create a strong password">
+                        <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <small>Minimum 8 characters with uppercase, lowercase, and numbers</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <div class="password-input">
+                        <input type="password" id="confirm_password" name="confirm_password" required placeholder="Confirm your password">
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirm_password')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Host-Specific Fields -->
+                <div id="hostFields" style="display: none;">
+                    <hr>
+                    <h3>Host Information</h3>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="Enter your phone number">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="property_name">Property Name</label>
+                        <input type="text" id="property_name" name="property_name" placeholder="e.g., Sunset Villa, Beach House">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <input type="text" id="location" name="location" placeholder="e.g., Los Angeles, California">
+                    </div>
+                </div>
+
+                <!-- Terms & Conditions -->
+                <div class="form-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="agree_terms" required>
+                        <span class="checkmark"></span>
+                        I agree to the Terms of Service and Privacy Policy
+                    </label>
+                </div>
+
+                <!-- Error Message -->
+                {% if error %}
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i> {{ error }}
+                </div>
+                {% endif %}
+
+                <!-- Success Message -->
+                {% if success %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> {{ success }}
+                </div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-primary btn-full">
+                    <i class="fas fa-user-plus"></i>
+                    Create Account
+                </button>
+            </form>
+
+            <div class="auth-divider">
+                <span>or</span>
+            </div>
+
+            <div class="auth-links">
+                <p>Already have an account?
+                    <a href="{{ url_for('auth.login_page') }}">Sign in</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Role Selector Styles */
+    
+    .role-selector {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .role-option input {
+        display: none;
+    }
+    
+    .role-label {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .role-label i {
+        font-size: 24px;
+        color: var(--primary-color);
+    }
+    
+    .role-label div strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+    
+    .role-label div p {
+        font-size: 12px;
+        color: var(--text-light);
+    }
+    
+    .role-option input:checked+.role-label {
+        border-color: var(--primary-color);
+        background-color: rgba(255, 107, 107, 0.05);
+        box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+    }
+    /* Host Fields Animation */
+    
+    #hostFields {
+        animation: slideDown 0.3s ease;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    #hostFields h3 {
+        font-size: 16px;
+        margin-bottom: 16px;
+        color: var(--text-dark);
+    }
+    
+    @media (max-width: 600px) {
+        .role-selector {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    function updateFormFields() {
+        const role = document.querySelector('input[name="role"]:checked').value;
+        const hostFields = document.getElementById('hostFields');
+        const hostInputs = hostFields.querySelectorAll('input');
+
+        if (role === 'host') {
+            hostFields.style.display = 'block';
+            hostInputs.forEach(input => input.required = true);
+        } else {
+            hostFields.style.display = 'none';
+            hostInputs.forEach(input => input.required = false);
+        }
+    }
+
+    function togglePassword(fieldId) {
+        const field = document.getElementById(fieldId);
+        const icon = event.target.closest('button').querySelector('i');
+
+        if (field.type === 'password') {
+            field.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            field.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    // Form validation on submit
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+
+        if (password !== confirmPassword) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+            return false;
+        }
+
+        if (password.length < 8) {
+            e.preventDefault();
+            alert('Password must be at least 8 characters long!');
+            return false;
+        }
+
+        // Check password strength
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasLowercase = /[a-z]/.test(password);
+        const hasNumbers = /\d/.test(password);
+
+        if (!hasUppercase || !hasLowercase || !hasNumbers) {
+            e.preventDefault();
+            alert('Password must contain uppercase, lowercase, and numbers!');
+            return false;
+        }
+    });
+
+    // Initialize form
+    document.addEventListener('DOMContentLoaded', updateFormFields);
+</script>
+{% endblock %}

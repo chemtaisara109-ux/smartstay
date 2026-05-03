@@ -1,0 +1,99 @@
+{% extends "base.html" %} {% block title %}Admin Dashboard - Laikipia SmartStay{% endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}"> {% endblock %} {% block content %}
+<div class="admin-dashboard">
+    <div class="admin-header">
+        <h1>Administrative Panel</h1>
+        <p>Monitor and verify listings for Laikipia SmartStay</p>
+    </div>
+
+    <div class="admin-stats">
+        <div class="stat-card">
+            <h3>Total Properties</h3>
+            <span class="stat-number">{{ total_properties }}</span>
+        </div>
+        <div class="stat-card">
+            <h3>Total Users</h3>
+            <span class="stat-number">{{ total_users }}</span>
+        </div>
+        <div class="stat-card">
+            <h3>Pending Verifications</h3>
+            <span class="stat-number">{{ pending_count }}</span>
+        </div>
+    </div>
+
+    <div class="admin-content">
+        <div class="pending-verifications">
+            <h2>Pending Property Verifications</h2>
+            {% if pending_verifications %}
+            <div class="verification-list">
+                {% for verification in pending_verifications %}
+                <div class="verification-item" data-id="{{ verification.id }}">
+                    <div class="property-info">
+                        <h3>{{ verification.property_title }}</h3>
+                        <p><strong>Location:</strong> {{ verification.location }}</p>
+                        <p><strong>Host:</strong> {{ verification.host_name }} ({{ verification.host_email }})</p>
+                        <p><strong>Submitted:</strong> {{ verification.created_at }}</p>
+                    </div>
+                    <div class="verification-actions">
+                        <button class="btn btn-success verify-btn" data-action="verified">
+                                <i class="fas fa-check"></i> Verify
+                            </button>
+                        <button class="btn btn-danger reject-btn" data-action="rejected">
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="no-pending">No pending verifications at this time.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle verification actions
+        document.querySelectorAll('.verify-btn, .reject-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const verificationItem = this.closest('.verification-item');
+                const verificationId = verificationItem.dataset.id;
+                const action = this.dataset.action;
+
+                if (confirm(`Are you sure you want to ${action} this property?`)) {
+                    fetch(`/api/admin/verification/${verificationId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                status: action,
+                                notes: ''
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.message) {
+                                alert(data.message);
+                                verificationItem.remove();
+                                // Update pending count
+                                const countElement = document.querySelector('.stat-number');
+                                if (countElement) {
+                                    const currentCount = parseInt(countElement.textContent);
+                                    countElement.textContent = Math.max(0, currentCount - 1);
+                                }
+                            } else {
+                                alert('Error: ' + data.error);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred while processing the request.');
+                        });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
